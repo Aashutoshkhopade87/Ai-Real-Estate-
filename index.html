@@ -1,0 +1,2275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexAgent Microservice Platform</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0e;
+            --text-light: #e0e0e0;
+            --text-medium: #a0a0a0;
+            --card-bg-glass: rgba(255, 255, 255, 0.08);
+            --border-glass: rgba(255, 255, 255, 0.15);
+            --accent-gradient: linear-gradient(45deg, #00C9FF, #92FE9D);
+            --accent-color-start: #00C9FF;
+            --accent-color-end: #92FE9D;
+            --glow-color: #00C9FF;
+            --neumorphic-shadow-dark: 10px 10px 20px rgba(0, 0, 0, 0.4), -10px -10px 20px rgba(25, 25, 30, 0.6);
+            --button-shadow-dark: 5px 5px 10px rgba(0, 0, 0, 0.3), -5px -5px 10px rgba(25, 25, 30, 0.4);
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --font-mono: 'Space Mono', monospace;
+            --font-sans: 'Inter', sans-serif;
+            --header-height: 80px;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+        /* Global Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Utility Classes */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .text-gradient {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .button {
+            background: var(--accent-gradient);
+            color: var(--bg-dark);
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--button-shadow-dark);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--glow-color), var(--button-shadow-dark);
+        }
+
+        .card {
+            background: var(--card-bg-glass);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--neumorphic-shadow-dark);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden; /* For inner glow effects */
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px rgba(0, 201, 255, 0.4), var(--neumorphic-shadow-dark);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color-start);
+            box-shadow: 0 0 0 3px rgba(0, 201, 255, 0.3);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: 3.5rem; line-height: 1.1; }
+        h2 { font-size: 2.5rem; line-height: 1.2; margin-top: 40px;}
+        h3 { font-size: 1.8rem; line-height: 1.3; }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .section-title h2 {
+            margin-bottom: 15px;
+        }
+        .section-title p {
+            font-size: 1.1rem;
+            color: var(--text-medium);
+        }
+
+        /* Header */
+        #main-header {
+            background-color: rgba(10, 10, 14, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #main-header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-mono);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .main-nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+        }
+
+        .main-nav a {
+            color: var(--text-medium);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .main-nav a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -5px;
+            width: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+            transition: width 0.3s ease;
+        }
+
+        .main-nav a:hover, .main-nav a.active {
+            color: var(--text-light);
+        }
+
+        .main-nav a:hover::after, .main-nav a.active::after {
+            width: 100%;
+        }
+
+        .auth-buttons button {
+            background: transparent;
+            border: 1px solid var(--border-glass);
+            color: var(--text-light);
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .auth-buttons button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-color-start);
+            box-shadow: 0 0 8px rgba(0, 201, 255, 0.3);
+        }
+
+        /* Main Content & Page Management */
+        main {
+            flex-grow: 1;
+            padding: 60px 0;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Section */
+        #hero-section {
+            text-align: center;
+            padding: 120px 0;
+            min-height: calc(100vh - var(--header-height));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, rgba(0, 201, 255, 0.05) 0%, transparent 70%);
+        }
+
+        #hero-section::before, #hero-section::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            opacity: 0.1;
+            filter: blur(80px);
+            animation: glowMove 15s infinite alternate;
+            z-index: -1;
+        }
+
+        #hero-section::before {
+            background-color: var(--accent-color-start);
+            top: 10%;
+            left: 5%;
+        }
+
+        #hero-section::after {
+            background-color: var(--accent-color-end);
+            bottom: 10%;
+            right: 5%;
+            animation-delay: 3s;
+        }
+
+        @keyframes glowMove {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(50px, -50px); }
+            50% { transform: translate(100px, 0); }
+            75% { transform: translate(50px, 50px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        #hero-section h1 {
+            font-size: 4.5rem;
+            margin-bottom: 25px;
+        }
+
+        #hero-section p {
+            font-size: 1.4rem;
+            color: var(--text-medium);
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+
+        /* Auth Section */
+        #auth-section {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        #auth-section .auth-container {
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        #auth-section .card {
+            padding: 40px;
+        }
+
+        #auth-section h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-medium);
+            font-weight: 600;
+        }
+
+        .auth-options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .auth-options button {
+            flex: 1;
+            background: transparent;
+            border: 1px solid var(--border-glass);
+            color: var(--text-light);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .auth-options button.active, .auth-options button:hover {
+            border-color: var(--accent-color-start);
+            background: rgba(0, 201, 255, 0.1);
+        }
+
+        .social-login button {
+            width: 100%;
+            background: #4285F4; /* Google blue */
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .social-login button:hover {
+            background: #357ae8;
+        }
+        .social-login img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .form-switch {
+            margin-top: 20px;
+            color: var(--text-medium);
+            font-size: 0.9rem;
+        }
+        .form-switch a {
+            color: var(--accent-color-start);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .form-switch a:hover {
+            text-decoration: underline;
+        }
+
+        /* Dashboard Section */
+        #dashboard-section {
+            padding: 60px 0;
+        }
+
+        #dashboard-section h2 {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .map-container {
+            height: 400px;
+            background: var(--input-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            color: var(--text-medium);
+            font-size: 1.2rem;
+            border: 1px dashed var(--border-glass);
+            box-shadow: inset 0 0 10px rgba(0, 201, 255, 0.1);
+            position: relative;
+        }
+        .map-container svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .map-container .map-pin {
+            fill: var(--accent-color-start);
+            stroke: var(--bg-dark);
+            stroke-width: 2px;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .map-container .map-pin:hover {
+            transform: scale(1.5);
+            fill: #92FE9D;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+        
+        .property-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .property-card {
+            display: flex;
+            background: var(--card-bg-glass);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--button-shadow-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .property-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 12px rgba(0, 201, 255, 0.3), var(--button-shadow-dark);
+        }
+
+        .property-thumbnail {
+            width: 80px;
+            height: 80px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-medium);
+            font-size: 0.8rem;
+            overflow: hidden;
+        }
+        .property-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .property-info h3 {
+            margin-bottom: 5px;
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+        .property-info p {
+            font-size: 0.9rem;
+            color: var(--text-medium);
+            margin-bottom: 8px;
+        }
+        .property-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            background: rgba(0, 201, 255, 0.15);
+            color: var(--accent-color-start);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+        }
+        .tag.high-yield { background: rgba(146, 254, 157, 0.15); color: #92FE9D; }
+        .tag.risky { background: rgba(255, 0, 0, 0.15); color: #FF6B6B; }
+        .tag.undervalued { background: rgba(255, 204, 0, 0.15); color: #FFCC00; }
+
+        /* Property Detail Section */
+        #property-detail-section {
+            padding: 60px 0;
+        }
+        #property-detail-section h2 {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        .detail-main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .prop-image {
+            width: 100%;
+            height: 300px;
+            background: var(--input-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-medium);
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .prop-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        .prop-details h3 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        .prop-details p {
+            color: var(--text-medium);
+            margin-bottom: 10px;
+        }
+        .ai-insights h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 10px;
+        }
+        .ai-insights ul {
+            list-style: none;
+        }
+        .ai-insights ul li {
+            background: rgba(0, 201, 255, 0.05);
+            border-left: 3px solid var(--accent-color-start);
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            color: var(--text-medium);
+        }
+        .generated-description-container {
+            margin-top: 20px;
+        }
+        .generated-description-container h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        #generated-description {
+            min-height: 150px;
+        }
+
+        .action-panel h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        .action-panel .button {
+            width: 100%;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        .agents-at-work {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .agents-at-work h4 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+        .agent-status-bar {
+            background: var(--input-bg);
+            border-radius: 8px;
+            height: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .agent-status-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 30%; /* Initial progress */
+            background: var(--accent-gradient);
+            border-radius: 8px;
+            animation: progressPulse 2s infinite alternate;
+        }
+        @keyframes progressPulse {
+            0% { width: 0%; opacity: 0.5; }
+            50% { width: 70%; opacity: 1; }
+            100% { width: 100%; opacity: 0.5; }
+        }
+
+        /* Due Diligence Section */
+        #due-diligence-section {
+            padding: 80px 0;
+        }
+        .dd-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .input-panel, .output-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .output-panel {
+            position: relative;
+        }
+        .output-panel h3 {
+            margin-bottom: 15px;
+        }
+        .dd-result-area {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 350px;
+            white-space: pre-wrap;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--text-light);
+            line-height: 1.8;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+        .dd-status {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-medium);
+        }
+        .dd-status div {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid var(--border-glass);
+            border-radius: 6px;
+        }
+        .dd-status div.active {
+            border-left-color: var(--accent-color-start);
+            color: var(--text-light);
+            background: rgba(0, 201, 255, 0.1);
+        }
+        .dd-status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--text-medium);
+            margin-right: 8px;
+            animation: none;
+        }
+        .dd-status div.active .dd-status-indicator {
+            background-color: var(--accent-color-start);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Agent Showcase */
+        #agent-showcase-section {
+            padding: 80px 0;
+        }
+        #agent-showcase-section .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            position: relative;
+            margin-top: 60px;
+            z-index: 1;
+        }
+        .agent-card {
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 2;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .agent-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            color: var(--accent-color-start);
+        }
+        .agent-card p {
+            font-size: 0.95rem;
+            color: var(--text-medium);
+        }
+        .agent-card .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .line-connector {
+            position: absolute;
+            background: var(--accent-gradient);
+            opacity: 0.3;
+            animation: lineGlow 5s infinite alternate;
+            z-index: 0;
+        }
+        @keyframes lineGlow {
+            0% { opacity: 0.3; background-position: 0% 50%; }
+            50% { opacity: 0.7; background-position: 100% 50%; }
+            100% { opacity: 0.3; background-position: 0% 50%; }
+        }
+
+        /* Scalability Section */
+        #scalability-section {
+            padding: 80px 0;
+            text-align: center;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+        }
+        .metric-card {
+            padding: 30px;
+            text-align: left;
+        }
+        .metric-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--accent-color-end);
+        }
+        .metric-card p {
+            color: var(--text-medium);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .sparkline-container {
+            height: 80px;
+            width: 100%;
+            background: var(--input-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 5px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        .sparkline-bar {
+            width: 8px;
+            background: linear-gradient(to top, var(--accent-color-start), var(--accent-color-end));
+            border-radius: 2px;
+            transition: height 0.5s ease;
+        }
+
+        /* CTA Section */
+        #cta-section {
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        #cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--accent-gradient);
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+        #cta-section h2 {
+            font-size: 3rem;
+            margin-bottom: 30px;
+        }
+
+        /* Footer */
+        #main-footer {
+            background-color: var(--bg-dark);
+            padding: 30px 0;
+            text-align: center;
+            color: var(--text-medium);
+            border-top: 1px solid var(--border-glass);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .dashboard-grid, .detail-grid, .dd-grid {
+                grid-template-columns: 1fr;
+            }
+            #main-header .container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .main-nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            #hero-section h1 {
+                font-size: 3rem;
+            }
+            #hero-section p {
+                font-size: 1.1rem;
+            }
+            .section-title h2 {
+                font-size: 2rem;
+            }
+            .agent-showcase-section .grid-container, .metric-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.8rem; }
+            h2 { font-size: 2rem; }
+            .main-nav ul {
+                gap: 15px;
+            }
+            .auth-options {
+                flex-direction: column;
+            }
+            .property-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .property-thumbnail {
+                width: 100%;
+                height: 120px;
+            }
+            .metric-card h3 {
+                font-size: 1.5rem;
+            }
+            .dd-result-area {
+                min-height: 250px;
+            }
+            #chatbot-container {
+                width: 100%;
+                right: 0;
+                bottom: 0;
+                border-radius: 0;
+                max-height: 100vh;
+            }
+            #chatbot-window {
+                height: calc(100% - 60px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            #hero-section h1 {
+                font-size: 2.2rem;
+            }
+            #hero-section p {
+                font-size: 1rem;
+            }
+            .button {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            .main-nav ul {
+                gap: 10px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Chatbot Styles */
+        #chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            max-height: 500px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease-in-out;
+        }
+
+        #chatbot-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            box-shadow: var(--neumorphic-shadow-dark);
+            border: none;
+            cursor: pointer;
+            font-size: 1.8rem;
+            color: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+
+        #chatbot-button:hover {
+            transform: scale(1.1);
+        }
+
+        #chatbot-window {
+            background: rgba(10, 10, 14, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            overflow: hidden;
+            height: 0;
+            transition: height 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chatbot-window.open {
+            height: 500px;
+        }
+
+        #chat-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        #chat-header button {
+            background: transparent;
+            border: none;
+            color: var(--text-medium);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        #chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-color-start) transparent;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+        
+        .message.user {
+            background: rgba(0, 201, 255, 0.2);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+        
+        .message.bot {
+            background: rgba(255, 255, 255, 0.1);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        #chat-input-container {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 10px;
+        }
+
+        #chat-input {
+            flex-grow: 1;
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+
+        #send-button {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            box-shadow: var(--button-shadow-dark);
+            border: none;
+            cursor: pointer;
+            color: var(--bg-dark);
+        }
+        .generated-description-container {
+            margin-top: 20px;
+        }
+        .generated-description-container h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        #generated-description {
+            min-height: 150px;
+        }
+        .prop-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        .property-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .audio-player {
+            display: none;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header id="main-header">
+            <div class="container">
+                <a href="#" class="logo" data-nav-target="hero-section">NexAgent</a>
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="#" data-nav-target="hero-section" class="active">Home</a></li>
+                        <li><a href="#" data-nav-target="dashboard-section">Dashboard</a></li>
+                        <li><a href="#" data-nav-target="agent-showcase-section">Agents</a></li>
+                        <li><a href="#" data-nav-target="due-diligence-section">Due Diligence Demo</a></li>
+                        <li><a href="#" data-nav-target="scalability-section">Scalability</a></li>
+                    </ul>
+                </nav>
+                <div class="auth-buttons">
+                    <button id="login-button" data-nav-target="auth-section">Login</button>
+                    <button id="signup-button" data-nav-target="auth-section">Sign Up</button>
+                    <button id="logout-button" style="display:none;">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section id="hero-section" class="page active">
+                <div class="container">
+                    <h1>Unleash <span class="text-gradient">Agentic Intelligence</span> in Real Estate</h1>
+                    <p>Revolutionizing property analysis and investment with a robust, microservice-powered agent architecture. For tech-savvy professionals and visionary investors.</p>
+                    <button class="button" data-nav-target="agent-showcase-section">🚀 See Agents in Action</button>
+                </div>
+            </section>
+
+            <section id="auth-section" class="page">
+                <div class="container auth-container">
+                    <div class="card">
+                        <div class="auth-options">
+                            <button id="show-login" class="active">Login</button>
+                            <button id="show-signup">Sign Up</button>
+                        </div>
+                        <div id="login-form">
+                            <h2>Login to NexAgent</h2>
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" placeholder="your@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password</label>
+                                <input type="password" id="login-password" placeholder="••••••••">
+                            </div>
+                            <button class="button" id="login-submit-button">Login</button>
+                            <div class="form-switch">
+                                <a href="#">Forgot Password?</a>
+                            </div>
+                            <div class="social-login">
+                                <button id="google-oauth-button"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDYuNjdDMjAgNi42NyAyMCAxMiAyMCAxMkMxMiAyMCA2Ljc1IDIwIDYuNzUgMjBDNi43NSAxMiA2Ljc1IDYuNjcgMTIgNi42N1oiIGZpbGw9IiM0Mjg1RjQiLz4KPHBhdGggZD0iTTcuMjUgMTdMMTMuNTggMTYuNTVDMTUuOTIgMTYuNTUgMTcuODMgMTQuNjQgMTcuODMgMTIuMjVDMTcuODMgMTAuODcgMTYuOTkgOS42MyAxNS44NyA4Ljk2VjguOTZMOC45MiA2LjgyQzExLjUgNS41MiAxNC40MiA1LjMzIDE3LjAyIDUuMzNDMTggNS4zMyAxOCA2LjY3IDE4IDYuNjdDMTggNy4xNyAxOCA3LjQyIDE4IDcuNDJDMTkgNy40MiAyMCA3LjQyIDIwIDcuNDJDMTggMy41OSAxNS45MiAzLjMzIDEyLjAyIDMuMzNDNy41IDMuMzMgNC41IDUuNDIgMy42NyA4Ljk2TDguOTIgMTIuNDJDOC41IDExLjMyIDguMjUgOS41IDguMjUgOC41QzguMjUgNy41IDcuNzUgNi42NyA3LjI1IDUuODNMNy4yNSA1LjgzTDcuMjUgNjdWMzdMNy4yNSAxNy ZaIiBmaWxsPSIjRkJCQzA0Ii8+CjxwYXRoIGQ9iTTUuMjUgMTAuNUw0Ljc1IDguODRDMi42NyA2LjY3IDIuNjcgNi42NyAyLjY3IDYuNjdDMi42NyA2LjY3IDUuMjUgOC4xNyA1LjI1IDEwLjVaIiBmaWxsPSIjRUE0MzM1Ii8+Cjwvc3ZnPg==" alt="Google icon"> Continue with Google</button>
+                            </div>
+                        </div>
+                        <div id="signup-form" style="display:none;">
+                            <h2>Join NexAgent</h2>
+                            <div class="form-group">
+                                <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" placeholder="your@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-password">Password</label>
+                                <input type="password" id="signup-password" placeholder="••••••••">
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-confirm-password">Confirm Password</label>
+                                <input type="password" id="signup-confirm-password" placeholder="••••••••">
+                            </div>
+                            <button class="button" id="signup-submit-button">Sign Up</button>
+                            <div class="form-switch">
+                                Already have an account? <a href="#" id="switch-to-login">Login</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="dashboard-section" class="page">
+                <div class="container">
+                    <div class="section-title">
+                        <h2>Your Personalized <span class="text-gradient">Investment Dashboard</span></h2>
+                        <p>Leverage AI-powered insights to discover high-potential properties and manage your portfolio.</p>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <h3>Dynamic Property Map</h3>
+                            <div class="map-container">
+                                <!-- Map SVG will be generated here -->
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3>Property List View</h3>
+                            <div class="property-list" id="property-list">
+                                <!-- Property cards will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="property-detail-section" class="page">
+                <div class="container">
+                    <h2 class="section-title">Property Details & <span class="text-gradient">AI Insights</span></h2>
+                    <div class="detail-grid">
+                        <div class="card detail-main-content">
+                            <div class="prop-image">
+                                <!-- Property image will be injected here -->
+                            </div>
+                            <div class="prop-details">
+                                <h3 id="detail-prop-title">Luxury Condo at Tech Hub</h3>
+                                <p id="detail-prop-address">123 Innovate Street, Future City, FC 90210</p>
+                                <p><strong>Price:</strong> $<span id="detail-prop-price">1,500,000</span> | <strong>Beds:</strong> <span id="detail-prop-beds">3</span> | <strong>Baths:</strong> <span id="detail-prop-baths">2.5</span> | <strong>Sq. Ft.:</strong> <span id="detail-prop-sqft">2,200</span></p>
+                                <p id="detail-prop-description">A state-of-the-art condominium designed for the future, featuring smart home integration, panoramic city views, and unparalleled amenities. Located in the heart of the burgeoning tech district.</p>
+                                <div class="generated-description-container">
+                                    <h4>✨ AI-Generated Marketing Description</h4>
+                                    <textarea id="generated-description" readonly placeholder="Click the 'Generate Description' button to create a compelling listing summary."></textarea>
+                                </div>
+                            </div>
+                            <div class="ai-insights">
+                                <h3>Explainable AI Insights</h3>
+                                <ul id="explainable-ai-list">
+                                    <li>Market Sentiment: "Strong Growth Potential (92%) due to recent tech company influx."</li>
+                                    <li>Risk Assessment: "Low-Medium. Potential for interest rate hikes affecting financing."</li>
+                                    <li>Comparative Analysis: "Valued ~8% below comparable properties in the last 6 months, indicating an an opportunity."</li>
+                                    <li>Future Outlook: "Projected 15% appreciation over next 3 years based on urban development plans."</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card action-panel">
+                            <h3>Next Steps</h3>
+                            <button class="button" id="add-leads-button">Add to Leads</button>
+                            <button class="button" id="contact-owner-button">Contact Owner</button>
+                            <button class="button" id="start-dd-button">Start Due Diligence</button>
+                            <button class="button" id="generate-description-button">✨ Generate Description</button>
+                            <button class="button" id="play-audio-button">✨ Play Audio Tour</button>
+                            <button class="button" id="generate-investment-summary-button">✨ Generate Investment Summary</button>
+                            <button class="button" id="draft-email-button">✨ Draft Email to Owner</button>
+                            <div class="audio-player">
+                                <audio controls id="audio-player"></audio>
+                                <p id="audio-status" style="font-size: 0.9rem; color: var(--text-medium); margin-top: 5px;"></p>
+                            </div>
+                            <div class="agents-at-work">
+                                <h4>Agents at Work</h4>
+                                <p class="text-medium">Analyzing data & coordinating tasks...</p>
+                                <div class="agent-status-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="agent-showcase-section" class="page">
+                <div class="container">
+                    <div class="section-title">
+                        <h2>Our <span class="text-gradient">Agent Stack</span>: Intelligent Automation at Work</h2>
+                        <p>A network of specialized AI agents working collaboratively to accelerate your real estate decisions.</p>
+                    </div>
+                    <div class="grid-container">
+                        <div class="card agent-card" id="agent-card-scout">
+                            <div class="icon">🔍</div>
+                            <h3>Scout Agent</h3>
+                            <p>Identifies emerging opportunities, market trends, and off-market properties globally.</p>
+                        </div>
+                        <div class="card agent-card" id="agent-card-underwriting">
+                            <div class="icon">💰</div>
+                            <h3>Underwriting Agent</h3>
+                            <p>Assesses financial viability, risk profiles, and investment returns for potential acquisitions.</p>
+                        </div>
+                        <div class="card agent-card" id="agent-card-negotiation">
+                            <div class="icon">🤝</div>
+                            <h3>Negotiation Agent</h3>
+                            <p>Optimizes deal terms, communicates with stakeholders, and manages offer/counter-offer cycles.</p>
+                        </div>
+                        <div class="card agent-card" id="agent-card-due-diligence">
+                            <div class="icon">✅</div>
+                            <h3>Due Diligence Agent</h3>
+                            <p>Analyzes contracts, reports, and legal documents to flag risks and compliance issues.</p>
+                        </div>
+                        <div class="card agent-card" id="agent-card-workflow">
+                            <div class="icon">⚙️</div>
+                            <h3>Workflow Agent</h3>
+                            <p>Orchestrates agent interactions, tracks project progress, and ensures seamless operation.</p>
+                        </div>
+                        <!-- Line Connectors (positioned via JS for dynamic layouts, for this demo, will be minimal/implied) -->
+                    </div>
+                </div>
+            </section>
+
+            <section id="due-diligence-section" class="page">
+                <div class="container">
+                    <div class="section-title">
+                        <h2><span class="text-gradient">Due Diligence Agent</span> Demo: Automated Risk Flagging</h2>
+                        <p>Experience the precision of AI in autonomously analyzing complex documents for critical insights.</p>
+                    </div>
+                    <div class="dd-grid">
+                        <div class="card input-panel">
+                            <h3>Input Documents</h3>
+                            <label for="inspection-report">Mock Inspection Report (Paste Text)</label>
+                            <textarea id="inspection-report" placeholder="Paste full inspection report text here...">
+HVAC unit is 15 years old. Roof has minor wear, 5 years remaining life. Electrical panel is outdated, potential for future upgrade costs. Basement shows signs of historical moisture intrusion, now mitigated. No structural damage found.
+Outdoor landscaping requires maintenance. Water heater 8 years old.
+
+Environmental check: No known hazards.
+Permits: All major renovations have permits on file.
+                            </textarea>
+
+                            <label for="contract-text">Mock Contract / Lease (Paste Text)</label>
+                            <textarea id="contract-text" placeholder="Paste contract/lease details here...">
+Lease agreement for Tenant A expires on 2024-12-31. Current rent $3000/month.
+Property has a recorded easement for public utility access along the northern boundary.
+No active litigation. Property taxes are current.
+Purchase price $1.2M. Closing date 2023-11-15.
+Seller warrants no undisclosed defects.
+                            </textarea>
+                            <button class="button" id="run-dd-button">✨ Run Due Diligence Agent</button>
+                        </div>
+                        <div class="card output-panel">
+                            <h3>Agent Output & Status</h3>
+                            <div id="dd-result-area" class="dd-result-area">
+                                Click "Run Due Diligence Agent" to analyze documents.
+                            </div>
+                            <div class="dd-status">
+                                <div id="status-workflow"><span class="dd-status-indicator"></span>Workflow Coordinator: Awaiting Input</div>
+                                <div id="status-data-underwriting"><span class="dd-status-indicator"></span>Data & Underwriting Agent: Idle</div>
+                                <div id="status-dd-agent"><span class="dd-status-indicator"></span>Due Diligence Agent: Idle</div>
+                                <div id="status-negotiation-comm"><span class="dd-status-indicator"></span>Negotiation/Communication Agent: Idle</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="scalability-section" class="page">
+                <div class="container">
+                    <div class="section-title">
+                        <h2>Scalability & Feedback: <span class="text-gradient">Performance at Scale</span></h2>
+                        <p>Designed for unparalleled performance, handling millions of records and scaling agents horizontally.</p>
+                    </div>
+                    <div class="metric-grid">
+                        <div class="card metric-card">
+                            <h3>Millions of Records Processed</h3>
+                            <p>Our agents efficiently process vast datasets, ensuring comprehensive analysis.</p>
+                            <div class="sparkline-container" id="sparkline-records"></div>
+                        </div>
+                        <div class="card metric-card">
+                            <h3>Horizontal Agent Scaling</h3>
+                            <p>Dynamically scale agent instances to meet demand, maintaining peak performance.</p>
+                            <div class="sparkline-container" id="sparkline-agents"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cta-section" class="page">
+                <div class="container">
+                    <h2>Ready to Transform Your <span class="text-gradient">Real Estate Operations</span>?</h2>
+                    <p>Unlock the power of AI-driven insights and automated workflows.</p>
+                    <button class="button" data-nav-target="auth-section">🚀 Get Started Today</button>
+                </div>
+            </section>
+        </main>
+
+        <footer id="main-footer">
+            <div class="container">
+                <p>&copy; 2023 NexAgent Microservice Platform. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Chatbot Container -->
+    <div id="chatbot-container">
+        <div id="chatbot-window">
+            <div id="chat-header">
+                <span>NexAgent Support</span>
+                <button id="close-chat-button">✖</button>
+            </div>
+            <div id="chat-messages">
+                <div class="message bot">Hello! I'm your AI support bot for NexAgent. How can I help you today?</div>
+            </div>
+            <div id="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Ask a question...">
+                <button id="send-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal">
+                        <path d="m3 3 3 9-3 9 19-9Z"/><path d="M12 21v-8.5"/></svg>
+                </button>
+            </div>
+        </div>
+        <button id="chatbot-button">🤖</button>
+    </div>
+
+    <script type="module">
+        // Import Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration (from your input)
+        const firebaseConfig = {
+          apiKey: "AIzaSyA3T2R-XGUR9FFvGkv9vinbi2ysAZSFTdE",
+          authDomain: "aashu-89be3.firebaseapp.com",
+          projectId: "aashu-89be3",
+          storageBucket: "aashu-89be3.firebasestorage.app",
+          messagingSenderId: "49258134194",
+          appId: "1:49258134194:web:0c8639ab472fc54f0367ab",
+          measurementId: "G-VEZR89F5E6"
+        };
+        
+        // Canvas-specific variables for auth and database
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfigFromCanvas = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfigFromCanvas);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // For development, set log level to debug
+        setLogLevel('debug');
+
+        // --- Global State & DOM Elements ---
+        let currentUserId = null;
+        let currentPropertyId = null;
+        let isAuthReady = false;
+
+        const pages = document.querySelectorAll('.page');
+        const navLinks = document.querySelectorAll('.main-nav a, [data-nav-target]');
+        const loginBtn = document.getElementById('login-button');
+        const signupBtn = document.getElementById('signup-button');
+        const logoutBtn = document.getElementById('logout-button');
+        const showLoginBtn = document.getElementById('show-login');
+        const showSignupBtn = document.getElementById('show-signup');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const switchToLoginLink = document.getElementById('switch-to-login');
+        const customAlertBox = document.createElement('div');
+        customAlertBox.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 10, 14, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(0, 201, 255, 0.4);
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 400px;
+            text-align: center;
+        `;
+        document.body.appendChild(customAlertBox);
+
+        function customAlert(message) {
+            customAlertBox.innerHTML = `
+                <p style="color:var(--text-light); font-size:1rem;">${message}</p>
+                <button id="alert-ok-button" style="background: var(--accent-gradient); color: var(--bg-dark); padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer;">OK</button>
+            `;
+            document.getElementById('alert-ok-button').addEventListener('click', () => {
+                customAlertBox.style.display = 'none';
+            });
+            customAlertBox.style.display = 'flex';
+        }
+
+        // --- Auth State Listener ---
+        onAuthStateChanged(auth, async (user) => {
+            isAuthReady = true;
+            if (user) {
+                currentUserId = user.uid;
+                updateAuthUI(true);
+            } else {
+                currentUserId = null;
+                updateAuthUI(false);
+            }
+            navigateTo('hero-section');
+        });
+
+        // --- Firebase Auth & Firestore Functions ---
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                customAlert('Please enter both email and password.');
+                return;
+            }
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                customAlert('Login successful!');
+            } catch (error) {
+                customAlert(`Login failed: ${error.message}`);
+            }
+        }
+
+        async function handleSignup() {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+            if (password !== confirmPassword) {
+                customAlert('Passwords do not match.');
+                return;
+            }
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                customAlert('Signup successful! You are now logged in.');
+            } catch (error) {
+                customAlert(`Signup failed: ${error.message}`);
+            }
+        }
+
+        async function handleGoogleOAuth() {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                customAlert('Google authentication successful!');
+            } catch (error) {
+                customAlert(`Google login failed: ${error.message}`);
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                customAlert('Logged out successfully.');
+                navigateTo('hero-section');
+            } catch (error) {
+                customAlert(`Logout failed: ${error.message}`);
+            }
+        }
+
+        // --- Navigation Logic ---
+        function navigateTo(pageId, propertyId = null) {
+            if (!isAuthReady) {
+                return;
+            }
+            
+            if (propertyId !== null) {
+                currentPropertyId = propertyId;
+            }
+
+            pages.forEach(page => page.classList.remove('active'));
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+
+            // Update active nav link
+            navLinks.forEach(link => link.classList.remove('active'));
+            const activeNavLink = document.querySelector(`.main-nav a[data-nav-target="${pageId}"]`);
+            if (activeNavLink) {
+                activeNavLink.classList.add('active');
+            }
+
+            // Special handling for dashboard/property detail
+            if (pageId === 'dashboard-section') {
+                renderPropertyList();
+                renderPropertyMap();
+            } else if (pageId === 'property-detail-section' && propertyId !== null) {
+                renderPropertyDetail(propertyId);
+            }
+        }
+
+        // --- Event Listeners for Navigation ---
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = e.target.dataset.navTarget;
+                if (targetId) {
+                    navigateTo(targetId);
+                }
+            });
+        });
+
+        // --- UI Updates ---
+        function updateAuthUI(loggedIn) {
+            if (loggedIn) {
+                loginBtn.style.display = 'none';
+                signupBtn.style.display = 'none';
+                logoutBtn.style.display = 'inline-block';
+            } else {
+                loginBtn.style.display = 'inline-block';
+                signupBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+                showLoginForm();
+            }
+        }
+
+        loginBtn.addEventListener('click', () => { showLoginForm(); navigateTo('auth-section'); });
+        signupBtn.addEventListener('click', () => { showSignupForm(); navigateTo('auth-section'); });
+        logoutBtn.addEventListener('click', handleLogout);
+
+        showLoginBtn.addEventListener('click', showLoginForm);
+        showSignupBtn.addEventListener('click', showSignupForm);
+        switchToLoginLink.addEventListener('click', (e) => { e.preventDefault(); showLoginForm(); });
+
+        function showLoginForm() {
+            loginForm.style.display = 'block';
+            signupForm.style.display = 'none';
+            showLoginBtn.classList.add('active');
+            showSignupBtn.classList.remove('active');
+        }
+
+        function showSignupForm() {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+            showLoginBtn.classList.remove('active');
+            showSignupBtn.classList.add('active');
+        }
+
+        // --- Dashboard Logic ---
+        const mockProperties = [
+            { id: 1, title: 'Luxury Condo Tech Hub', address: '123 Innovate St, Future City', price: '1,500,000', beds: 3, baths: 2.5, sqft: 2200, tags: ['High Yield', 'Undervalued'], lat: 34.052235, lng: -118.243683, description: "A state-of-the-art condominium designed for the future, featuring smart home integration, panoramic city views, and unparalleled amenities. Located in the heart of the burgeoning tech district." },
+            { id: 2, title: 'Downtown Lofts', address: '456 Cyberpunk Blvd, Metroplex', price: '850,000', beds: 2, baths: 2, sqft: 1500, tags: ['Risky', 'High Yield'], lat: 34.0583, lng: -118.2580, description: "Industrial-chic loft in a vibrant downtown area. Excellent for urban living, though some revitalization projects are ongoing nearby." },
+            { id: 3, title: 'Suburban Smart Home', address: '789 Greenbelt Ln, Oasis Valley', price: '1,100,000', beds: 4, baths: 3, sqft: 2800, tags: ['High Yield'], lat: 34.1500, lng: -118.4900, description: "Family-friendly smart home with integrated solar panels and energy-efficient systems. Located in a top-rated school district." },
+            { id: 4, title: 'Commercial Office Space', address: '101 Data Dr, Innovation Park', price: '3,200,000', beds: 0, baths: 0, sqft: 10000, tags: ['High Yield'], lat: 34.1444, lng: -118.2394, description: "Prime commercial office space in a thriving business park. Ideal for tech startups or established corporations seeking expansion." }
+        ];
+
+        function renderPropertyList() {
+            const propertyListDiv = document.getElementById('property-list');
+            propertyListDiv.innerHTML = ''; // Clear previous list
+
+            mockProperties.forEach(prop => {
+                const propCard = document.createElement('div');
+                propCard.classList.add('property-card');
+                propCard.addEventListener('click', () => {
+                    navigateTo('property-detail-section', prop.id);
+                });
+                propCard.innerHTML = `
+                    <div class="property-thumbnail">
+                        <img src="https://picsum.photos/seed/${prop.id}/800/600" alt="Property ${prop.id} Image">
+                    </div>
+                    <div class="property-info">
+                        <h3>${prop.title}</h3>
+                        <p>${prop.address}</p>
+                        <p><strong>$${prop.price}</strong> | ${prop.beds} Beds | ${prop.baths} Baths</p>
+                        <div class="property-tags">
+                            ${prop.tags.map(tag => `<span class="tag ${tag.toLowerCase().replace(' ', '-')}">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+                propertyListDiv.appendChild(propCard);
+            });
+        }
+        
+        function renderPropertyMap() {
+            const mapContainer = document.querySelector('.map-container');
+            const mapWidth = mapContainer.offsetWidth;
+            const mapHeight = mapContainer.offsetHeight;
+
+            // Simple coordinate scaling for the mock map
+            const latMin = 33.9, latMax = 34.1;
+            const lngMin = -118.4, lngMax = -118.2;
+            const latRange = latMax - latMin;
+            const lngRange = lngMax - lngMin;
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('viewBox', `0 0 ${mapWidth} ${mapHeight}`);
+
+            const mapBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            mapBg.setAttribute('width', '100%');
+            mapBg.setAttribute('height', '100%');
+            mapBg.setAttribute('fill', 'rgba(255, 255, 255, 0.05)');
+            mapBg.setAttribute('rx', '10');
+            svg.appendChild(mapBg);
+
+            mockProperties.forEach(prop => {
+                const x = ((prop.lng - lngMin) / lngRange) * mapWidth;
+                const y = (1 - (prop.lat - latMin) / latRange) * mapHeight;
+
+                const pin = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                pin.setAttribute('cx', x);
+                pin.setAttribute('cy', y);
+                pin.setAttribute('r', 8);
+                pin.classList.add('map-pin');
+                pin.addEventListener('click', () => navigateTo('property-detail-section', prop.id));
+                svg.appendChild(pin);
+            });
+
+            mapContainer.innerHTML = '';
+            mapContainer.appendChild(svg);
+        }
+
+        // --- Property Detail Logic ---
+        function renderPropertyDetail(propertyId) {
+            const prop = mockProperties.find(p => p.id === propertyId);
+            if (!prop) {
+                customAlert('Property not found!');
+                navigateTo('dashboard-section');
+                return;
+            }
+            currentPropertyId = propertyId;
+
+            document.getElementById('detail-prop-title').textContent = prop.title;
+            document.getElementById('detail-prop-address').textContent = prop.address;
+            document.getElementById('detail-prop-price').textContent = prop.price;
+            document.getElementById('detail-prop-beds').textContent = prop.beds;
+            document.getElementById('detail-prop-baths').textContent = prop.baths;
+            document.getElementById('detail-prop-sqft').textContent = prop.sqft;
+            document.getElementById('detail-prop-description').textContent = prop.description;
+            
+            // Set property image
+            const propImageDiv = document.querySelector('.prop-image');
+            propImageDiv.innerHTML = `<img src="https://picsum.photos/seed/${prop.id}/800/600" alt="Image of ${prop.title}">`;
+
+            // Mock Explainable AI Insights based on tags
+            const explainableAiList = document.getElementById('explainable-ai-list');
+            explainableAiList.innerHTML = '';
+            const insights = [];
+            if (prop.tags.includes('High Yield')) insights.push('Market Sentiment: "Strong Growth Potential (92%) due to recent tech company influx."');
+            if (prop.tags.includes('Risky')) insights.push('Risk Assessment: "Medium-High. Potential for interest rate hikes affecting financing and local revitalization challenges."');
+            if (prop.tags.includes('Undervalued')) insights.push('Comparative Analysis: "Valued ~8% below comparable properties in the last 6 months, indicating an an opportunity."');
+            insights.push('Future Outlook: "Projected 15% appreciation over next 3 years based on urban development plans."'); // Generic for all
+            insights.forEach(insight => {
+                const li = document.createElement('li');
+                li.textContent = insight;
+                explainableAiList.appendChild(li);
+            });
+
+            // Reset generated content areas on new property load
+            document.getElementById('generated-description').value = '';
+            document.querySelector('.audio-player').style.display = 'none';
+        }
+
+        // --- Due Diligence Agent Demo Logic ---
+        async function runDueDiligenceAgentDemo() {
+            const inspectionReportText = document.getElementById('inspection-report').value;
+            const contractText = document.getElementById('contract-text').value;
+
+            if (!inspectionReportText.trim() && !contractText.trim()) {
+                customAlert("Please provide text for at least one document to run the Due Diligence Agent.");
+                return;
+            }
+
+            resetDDStatus();
+            document.getElementById('dd-result-area').textContent = 'Due Diligence Agent is processing...';
+
+            await runGeminiDueDiligence(inspectionReportText, contractText);
+        }
+
+        async function runGeminiDueDiligence(inspectionReport, contractText) {
+            const ddResultArea = document.getElementById('dd-result-area');
+            const apiKey = "";
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
+            
+            await simulateAgentActivity('status-workflow', 'Workflow Coordinator: Initiating document analysis...', 500);
+
+            const prompt = `Act as a senior real estate due diligence agent. Analyze the following documents and provide a concise, professional report. The report should be structured with clear headings for 'Risks', 'Red Flags', and 'Recommendations'.
+
+### Documents:
+1.  **Inspection Report:**
+    ${inspectionReport}
+
+2.  **Contract/Lease:**
+    ${contractText}
+
+### Instructions:
+-   Identify and list potential risks (e.g., aging systems, market volatility).
+-   Identify and list critical 'red flags' that require immediate attention (e.g., historical issues, conflicting clauses).
+-   Provide actionable recommendations for each risk and red flag.
+-   If no major risks or red flags are found, state that clearly.
+-   Do not include any mock API messages. Generate the full report from your analysis.
+-   Format the output as a single block of markdown text.
+`;
+            
+            const payload = {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                systemInstruction: {
+                    parts: [{ text: "You are a world-class real estate due diligence professional." }]
+                }
+            };
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message || 'API request failed.');
+                }
+
+                const result = await response.json();
+                const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (generatedText) {
+                    ddResultArea.textContent = generatedText;
+                } else {
+                    ddResultArea.textContent = "Analysis failed. No content was generated.";
+                }
+
+            } catch (error) {
+                console.error("Gemini API call failed:", error);
+                ddResultArea.textContent = `Error: ${error.message}. Please check your input and try again.`;
+                customAlert(`API Error: ${error.message}`);
+            } finally {
+                // Final status message
+                await simulateAgentActivity('status-negotiation-comm', 'Negotiation/Communication Agent: Preparing summary for stakeholders...', 1000);
+                document.getElementById('status-dd-agent').classList.remove('active'); 
+                document.getElementById('status-negotiation-comm').classList.remove('active');
+                document.getElementById('status-workflow').classList.remove('active');
+                document.getElementById('status-data-underwriting').classList.remove('active');
+
+                document.getElementById('status-workflow').innerHTML = '<span class="dd-status-indicator"></span>Workflow Coordinator: Task Completed';
+                document.getElementById('status-data-underwriting').innerHTML = '<span class="dd-status-indicator"></span>Data & Underwriting Agent: Data Verified';
+                document.getElementById('status-dd-agent').innerHTML = '<span class="dd-status-indicator"></span>Due Diligence Agent: Report Generated';
+                document.getElementById('status-negotiation-comm').innerHTML = '<span class="dd-status-indicator"></span>Negotiation/Communication Agent: Ready for Outreach';
+            }
+        }
+
+        function resetDDStatus() {
+            document.querySelectorAll('.dd-status div').forEach(div => {
+                div.classList.remove('active');
+                const originalText = div.id.replace('status-', '').replace('-', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') + ': Idle';
+                if(div.id === 'status-workflow') div.textContent = 'Workflow Coordinator: Awaiting Input';
+                else if(div.id === 'status-data-underwriting') div.textContent = 'Data & Underwriting Agent: Idle';
+                else if(div.id === 'status-dd-agent') div.textContent = 'Due Diligence Agent: Idle';
+                else if(div.id === 'status-negotiation-comm') div.textContent = 'Negotiation/Communication Agent: Idle';
+            });
+        }
+
+        async function simulateAgentActivity(statusId, message, delay) {
+            const statusDiv = document.getElementById(statusId);
+            statusDiv.classList.add('active');
+            statusDiv.innerHTML = `<span class="dd-status-indicator"></span>${message}`;
+            return new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        function startDueDiligenceSimulation() {
+            // This is triggered from the Property Detail page "Start Due Diligence" button
+            // It pre-fills the DD section with mock data relevant to the selected property
+            document.getElementById('inspection-report').value = `
+HVAC unit is 15 years old. Roof has minor wear, 5 years remaining life. Electrical panel is outdated, potential for future upgrade costs. Basement shows signs of historical moisture intrusion, now mitigated. No structural damage found.
+Outdoor landscaping requires maintenance. Water heater 8 years old.
+
+Environmental check: No known hazards.
+Permits: All major renovations have permits on file.
+            `.trim();
+            document.getElementById('contract-text').value = `
+Lease agreement for Tenant A expires on 2024-12-31. Current rent $3000/month.
+Property has a recorded easement for public utility access along the northern boundary.
+No active litigation. Property taxes are current.
+Purchase price $1.2M. Closing date 2023-11-15.
+Seller warrants no undisclosed defects.
+            `.trim();
+            runDueDiligenceAgentDemo();
+        }
+
+        // --- New Feature: Property Description Generator ---
+        async function generatePropertyDescription() {
+            const prop = mockProperties.find(p => p.id === currentPropertyId);
+            if (!prop) {
+                customAlert('No property selected to generate a description.');
+                return;
+            }
+
+            const descriptionOutput = document.getElementById('generated-description');
+            descriptionOutput.value = 'Generating a unique property description...';
+
+            const apiKey = "";
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
+
+            const prompt = `Write a short, engaging, and professional marketing description for the following real estate property. Focus on its key features and investment appeal. Do not exceed 2-3 short paragraphs.
+
+Property Details:
+- Title: ${prop.title}
+- Address: ${prop.address}
+- Price: $${prop.price}
+- Beds: ${prop.beds}
+- Baths: ${prop.baths}
+- Sq. Ft.: ${prop.sqft}
+- Features: ${prop.description}
+`;
+            
+            const payload = {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                systemInstruction: {
+                    parts: [{ text: "You are a professional real estate marketing copywriter." }]
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Failed to generate description.";
+                descriptionOutput.value = generatedText;
+            } catch (error) {
+                console.error("API call failed:", error);
+                descriptionOutput.value = "Error: Could not generate description. Please try again.";
+            }
+        }
+        
+        // --- New Feature: Property Audio Tour ---
+        async function generateAudioTour() {
+            const descriptionText = document.getElementById('generated-description').value;
+            if (!descriptionText || descriptionText.trim() === 'Generating a unique property description...') {
+                customAlert('Please generate a property description first!');
+                return;
+            }
+
+            const audioPlayerContainer = document.querySelector('.audio-player');
+            const audioPlayer = document.getElementById('audio-player');
+            const audioStatus = document.getElementById('audio-status');
+            audioPlayerContainer.style.display = 'block';
+            audioStatus.textContent = 'Generating audio tour...';
+            audioPlayer.style.display = 'none';
+
+            const apiKey = "";
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=" + apiKey;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: descriptionText }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Fenrir" }
+                        }
+                    }
+                },
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('TTS API request failed');
+                }
+
+                const result = await response.json();
+                const audioData = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                const mimeType = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10) || 16000;
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.style.display = 'block';
+                    audioStatus.textContent = 'Audio tour ready.';
+                    audioPlayer.play();
+                } else {
+                    audioStatus.textContent = 'Failed to get audio data.';
+                    console.error("Invalid audio data from API:", result);
+                }
+
+            } catch (error) {
+                console.error("TTS API call failed:", error);
+                audioStatus.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const byteRate = sampleRate * numChannels * bytesPerSample;
+            const blockAlign = numChannels * bytesPerSample;
+
+            const buffer = new ArrayBuffer(44 + pcmData.length * bytesPerSample);
+            const view = new DataView(buffer);
+            let offset = 0;
+
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+
+            // RIFF chunk
+            writeString(view, offset, 'RIFF'); offset += 4;
+            view.setUint32(offset, 36 + pcmData.length * bytesPerSample, true); offset += 4;
+            writeString(view, offset, 'WAVE'); offset += 4;
+
+            // fmt chunk
+            writeString(view, offset, 'fmt '); offset += 4;
+            view.setUint32(offset, 16, true); offset += 4; // Chunk size
+            view.setUint16(offset, 1, true); offset += 2; // Audio format (1 = PCM)
+            view.setUint16(offset, numChannels, true); offset += 2;
+            view.setUint32(offset, sampleRate, true); offset += 4;
+            view.setUint32(offset, byteRate, true); offset += 4;
+            view.setUint16(offset, blockAlign, true); offset += 2;
+            view.setUint16(offset, bytesPerSample * 8, true); offset += 2;
+
+            // data chunk
+            writeString(view, offset, 'data'); offset += 4;
+            view.setUint32(offset, pcmData.length * bytesPerSample, true); offset += 4;
+
+            for (let i = 0; i < pcmData.length; i++) {
+                view.setInt16(offset, pcmData[i], true);
+                offset += 2;
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+
+        // --- New Feature: Investment Summary Generator ---
+        async function generateInvestmentSummary() {
+            const prop = mockProperties.find(p => p.id === currentPropertyId);
+            if (!prop) {
+                customAlert('No property selected to generate a summary.');
+                return;
+            }
+
+            const descriptionOutput = document.getElementById('generated-description');
+            descriptionOutput.value = 'Generating investment summary...';
+
+            const apiKey = "";
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
+
+            const prompt = `Act as a world-class financial analyst. Provide a concise, single-paragraph summary of the investment potential and key findings for the following real estate property. Do not exceed one paragraph.
+
+Property Details:
+- Title: ${prop.title}
+- Address: ${prop.address}
+- Price: $${prop.price}
+- Beds: ${prop.beds}
+- Baths: ${prop.baths}
+- Sq. Ft.: ${prop.sqft}
+- Current Description: ${prop.description}
+- AI Insights: ${document.getElementById('explainable-ai-list').innerText}
+`;
+            
+            const payload = {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                systemInstruction: {
+                    parts: [{ text: "You are a professional financial analyst." }]
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Failed to generate summary.";
+                descriptionOutput.value = generatedText;
+            } catch (error) {
+                console.error("API call failed:", error);
+                descriptionOutput.value = "Error: Could not generate summary. Please try again.";
+            }
+        }
+
+        // --- New Feature: Draft Email to Owner ---
+        async function draftEmailToOwner() {
+            const prop = mockProperties.find(p => p.id === currentPropertyId);
+            if (!prop) {
+                customAlert('No property selected to draft an email.');
+                return;
+            }
+        
+            const descriptionOutput = document.getElementById('generated-description');
+            descriptionOutput.value = 'Drafting email to owner...';
+            
+            const apiKey = "";
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
+        
+            const prompt = `
+            Act as a professional real estate agent named "Alex". Draft a polite and concise email to the owner of the following property to express interest and request a viewing or more information.
+
+            Property Details:
+            - Property Title: ${prop.title}
+            - Address: ${prop.address}
+            - Price: $${prop.price}
+            - Your name: Alex
+            
+            Email instructions:
+            - The subject line should be professional and catchy.
+            - Introduce yourself as "Alex, a real estate agent from NexAgent".
+            - Express your interest in the property.
+            - Ask for a good time to schedule a viewing.
+            - Thank them for their time.
+            `;
+            
+            const payload = {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                systemInstruction: {
+                    parts: [{ text: "You are a professional real estate agent." }]
+                }
+            };
+        
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Failed to draft email.";
+                descriptionOutput.value = generatedText;
+                customAlert('Email draft created successfully!');
+            } catch (error) {
+                console.error("API call failed:", error);
+                descriptionOutput.value = "Error: Could not draft email. Please try again.";
+                customAlert('Error drafting email. Please check your network and API key.');
+            }
+        }
+
+
+        // --- Scalability & Feedback Sparkline Logic ---
+        function generateSparklineData(min, max, count) {
+            return Array.from({ length: count }, () => Math.floor(Math.random() * (max - min + 1)) + min);
+        }
+
+        function renderSparkline(containerId, data) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            const maxHeight = container.clientHeight - 10; // Account for padding
+            const maxValue = Math.max(...data);
+
+            data.forEach(value => {
+                const bar = document.createElement('div');
+                bar.classList.add('sparkline-bar');
+                bar.style.height = `${(value / maxValue) * maxHeight}px`;
+                container.appendChild(bar);
+            });
+        }
+        
+        // --- Chatbot Logic ---
+        const chatbotButton = document.getElementById('chatbot-button');
+        const chatbotWindow = document.getElementById('chatbot-window');
+        const closeChatButton = document.getElementById('close-chat-button');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatHistory = [];
+
+        function toggleChat() {
+            chatbotWindow.classList.toggle('open');
+        }
+
+        function appendMessage(sender, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        async function getGeminiResponse(userMessage) {
+            const apiKey = "";
+            const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
+
+            appendMessage('bot', 'Typing...');
+            
+            chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+
+            const payload = {
+                contents: chatHistory,
+                systemInstruction: {
+                    parts: [{ text: "You are NexAgent Support, a helpful and knowledgeable AI assistant for the NexAgent platform. Your purpose is to provide support for the platform's features, like login, dashboard, and the Due Diligence Agent demo. If a user asks for something unrelated, gently guide them back to topics about the NexAgent app." }]
+                }
+            };
+
+            const botTypingMessage = chatMessages.lastElementChild;
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message || 'API request failed.');
+                }
+                
+                const result = await response.json();
+                const botMessage = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
+                
+                botTypingMessage.remove();
+                appendMessage('bot', botMessage);
+                chatHistory.push({ role: "model", parts: [{ text: botMessage }] });
+
+            } catch (error) {
+                console.error("Gemini API call failed:", error);
+                botTypingMessage.remove();
+                appendMessage('bot', 'An error occurred. Please try again later.');
+            }
+        }
+
+        async function sendMessage() {
+            const userMessage = chatInput.value.trim();
+            if (userMessage === '') return;
+
+            appendMessage('user', userMessage);
+            chatInput.value = '';
+
+            await getGeminiResponse(userMessage);
+        }
+
+        // --- Event Listeners for all interactive elements ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check for initial auth token and sign in
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } catch (error) {
+                    console.error("Custom token sign-in failed, signing in anonymously:", error);
+                    await signInAnonymously(auth);
+                }
+            } else {
+                await signInAnonymously(auth);
+            }
+
+            // --- Initial Setup and Event Listeners ---
+            updateAuthUI();
+            navigateTo('hero-section');
+
+            const recordsData = generateSparklineData(50, 100, 30);
+            const agentsData = generateSparklineData(10, 50, 30);
+            renderSparkline('sparkline-records', recordsData);
+            renderSparkline('sparkline-agents', agentsData);
+            
+            setInterval(() => {
+                const newRecordsData = generateSparklineData(50, 100, 30);
+                const newAgentsData = generateSparklineData(10, 50, 30);
+                renderSparkline('sparkline-records', newRecordsData);
+                renderSparkline('sparkline-agents', newAgentsData);
+            }, 5000);
+            
+            document.getElementById('login-submit-button').addEventListener('click', handleLogin);
+            document.getElementById('signup-submit-button').addEventListener('click', handleSignup);
+            document.getElementById('google-oauth-button').addEventListener('click', handleGoogleOAuth);
+            document.getElementById('add-leads-button').addEventListener('click', () => customAlert('Added to Leads!'));
+            document.getElementById('contact-owner-button').addEventListener('click', () => customAlert('Contacting Owner initiated!'));
+            document.getElementById('start-dd-button').addEventListener('click', () => {
+                navigateTo('due-diligence-section');
+                startDueDiligenceSimulation();
+            });
+            document.getElementById('run-dd-button').addEventListener('click', runDueDiligenceAgentDemo);
+            document.getElementById('generate-description-button').addEventListener('click', generatePropertyDescription);
+            document.getElementById('play-audio-button').addEventListener('click', generateAudioTour);
+            document.getElementById('generate-investment-summary-button').addEventListener('click', generateInvestmentSummary);
+            document.getElementById('draft-email-button').addEventListener('click', draftEmailToOwner);
+
+            // Chatbot event listeners
+            chatbotButton.addEventListener('click', toggleChat);
+            closeChatButton.addEventListener('click', toggleChat);
+            sendButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
